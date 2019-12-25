@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/vektah/gqlparser/ast"
-	"github.com/vektah/gqlparser/parser"
+	"github.com/jkrajniak/internal/gqlparser/ast"
+	"github.com/jkrajniak/internal/gqlparser/parser"
 )
 
 const (
@@ -50,15 +50,18 @@ func main() {
 				if tName, hasType := GQLTypesToGoTypes[f.Type.Name()]; hasType {
 					typeName = tName
 				}
-				if !f.Type.NonNull {
+				if !f.Type.NonNull { // if type can be nullable, use pointer
 					typeName = strings.Join([]string{"*", typeName}, "")
+				}
+				if f.DefaultValue != nil && f.DefaultValue.Kind == ast.ListValue {
+					fmt.Println("lista")
 				}
 				fields = append(fields, fmt.Sprintf(FieldTPL, strings.Title(f.Name), typeName, f.Name))
 			}
 			fmt.Printf(StructTPL, i.Name, strings.Join(fields, "\n"))
-		} else if i.IsLeafType() {
+		} else if i.Kind == ast.Enum {
 			for _, e := range i.EnumValues {
-				fmt.Println(e.Directives)
+				fmt.Println(e.Name)
 			}
 		}
 		fmt.Println()
