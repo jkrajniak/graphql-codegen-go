@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/jkrajniak/internal/gqlparser/ast"
-	"github.com/jkrajniak/internal/gqlparser/parser"
+	"github.com/jkrajniak/graphql-codegen-go/internal/gqlparser/ast"
+	"github.com/jkrajniak/graphql-codegen-go/internal/gqlparser/parser"
 )
 
 const (
@@ -17,6 +17,8 @@ const (
 
 	FieldTPL     = "  %s %s `json:\"%s\""
 	ListFieldTPL = "  %s []%s `json:\"%s\""
+	EnumTypeDefTPL = "type %s %s"
+	EnumDefConstTPL = "const %s %s = \"%s\""
 )
 
 var GQLTypesToGoTypes = map[string]string{
@@ -42,28 +44,50 @@ func main() {
 		BuiltIn: false,
 	})
 
+	//remap enums
+	enumMap := map[string]string{}
+	for _, i := range doc.Definitions {
+		if i.Kind == ast.Enum {
+			enumTypeName := fmt.Sprintf("%sEnum", i.Name)
+			enumMap[i.Name] = enumTypeName
+			fmt.Printf(EnumTypeDefTPL, enumTypeName, "string")
+			fmt.Println()
+			for _, e := range i.EnumValues {
+				fmt.Printf(EnumDefConstTPL, e.Name, enumTypeName, e.Name)
+				fmt.Println()
+			}
+		}
+	}
+
 	for _, i := range doc.Definitions {
 		var fields []string
-		if i.IsCompositeType() {
+		if i.Kind == ast.Object || i.Kind == ast.InputObject {
 			for _, f := range i.Fields {
-				typeName := f.Type.Name()
-				if tName, hasType := GQLTypesToGoTypes[f.Type.Name()]; hasType {
-					typeName = tName
+				typeName := resolveType(f.Type.Name(), enumMap, f.Type.NonNull)
+				fieldName := strings.Title(f.Name)
+				jsonFieldName := f.Name
+				if f.Type.Elem != nil { // list type
+					elemTypeName := resolveType(f.Type.Elem.Name(), enumMap, f.Type.Elem.NonNull)
+					fields = append(fields, fmt.Sprintf(ListFieldTPL, fieldName, elemTypeName, jsonFieldName))
+				} else {
+					fields = append(fields, fmt.Sprintf(FieldTPL, fieldName, typeName, jsonFieldName))
 				}
-				if !f.Type.NonNull { // if type can be nullable, use pointer
-					typeName = strings.Join([]string{"*", typeName}, "")
-				}
-				if f.DefaultValue != nil && f.DefaultValue.Kind == ast.ListValue {
-					fmt.Println("lista")
-				}
-				fields = append(fields, fmt.Sprintf(FieldTPL, strings.Title(f.Name), typeName, f.Name))
 			}
 			fmt.Printf(StructTPL, i.Name, strings.Join(fields, "\n"))
-		} else if i.Kind == ast.Enum {
-			for _, e := range i.EnumValues {
-				fmt.Println(e.Name)
-			}
 		}
 		fmt.Println()
 	}
+}
+
+func resolveType(typeName string, enumMap map[string]string, notNull bool) string {
+	if tName, hasType := GQLTypesToGoTypes[typeName]; hasType {
+		typeName = tName
+	}
+	if tName, hasEnumType := enumMap[typeName]; hasEnumType {
+		typeName = tName
+	}
+	if !notNull { // if type can be nullable, use pointer
+		typeName = strings.Join([]string{"*", typeName}, "")
+	}
+	return typeName
 }

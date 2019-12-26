@@ -9,7 +9,7 @@ type Entity2 {
     order: ABC!
 }
 
-type Entity1 {
+type Entity3 {
     id: String!
 
     name: String
@@ -20,6 +20,12 @@ type Entity1 {
 
     total: Int
 
+    # Entity2 is a very important propert
     entity2: Entity2!
     entity3: Entity2
+    entity4: [Entity2]
+}
+
+input EntityInput {
+    id: String!
 }

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	. "github.com/jkrajniak/graphql-codegen-go/internal/gqlparser/ast"
 	"github.com/jkrajniak/graphql-codegen-go/internal/gqlparser/gqlerror"
 	"github.com/jkrajniak/graphql-codegen-go/internal/gqlparser/lexer"
 )
