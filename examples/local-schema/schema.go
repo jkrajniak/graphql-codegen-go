@@ -1,3 +1,3 @@
 package main
 
-//go:generate ../../graphql-codegen-go -schema schema.graphql
+//go:generate go run ../.. -schema schema.graphql --packageName main -out models.go
