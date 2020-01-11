@@ -1,3 +1,11 @@
-package main
+package appsync
 
-//go:generate go run ../.. -schema schema.graphql --packageName main -out models.go
+//go:generate go run ../../../../. -schema ../../schema.graphql -out models.go
+
+type RawEntity struct {
+	ID string
+}
+
+func CopyEntity(e Entity1) RawEntity {
+	return RawEntity{ID: e.Id}
+}

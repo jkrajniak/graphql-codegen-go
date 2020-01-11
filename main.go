@@ -4,6 +4,8 @@ import (
 	"flag"
 	"github.com/jkrajniak/graphql-codegen-go/internal"
 	"io/ioutil"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -15,7 +17,11 @@ func main() {
 	flag.Parse()
 
 	if packageName == nil || *packageName == "" {
-		panic("packageName is required")
+		p, err := resolvePackageName()
+		if err != nil {
+			panic(err)
+		}
+		packageName = &p
 	}
 
 	of, err := ioutil.ReadFile(*schemaFile)
@@ -45,4 +51,16 @@ func main() {
 	if err := output.Close(); err != nil {
 		panic(err)
 	}
+}
+
+
+func resolvePackageName() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	_, packageName := path.Split(cwd)
+
+	return packageName, nil
 }
