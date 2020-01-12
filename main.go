@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/jkrajniak/graphql-codegen-go/internal"
-	"io/ioutil"
+	"github.com/jkrajniak/graphql-codegen-go/internal/readers"
 	"os"
 	"path"
 	"strings"
@@ -24,7 +24,8 @@ func main() {
 		packageName = &p
 	}
 
-	of, err := ioutil.ReadFile(*schemaFile)
+	schemaReader := readers.DiscoverReader(*schemaFile)
+	of, err := schemaReader.Read()
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +40,6 @@ func main() {
 
 	}
 
-
 	var entities []string
 	if *entitiesString != "" {
 		entities = strings.Split(*entitiesString, ",")
@@ -52,7 +52,6 @@ func main() {
 		panic(err)
 	}
 }
-
 
 func resolvePackageName() (string, error) {
 	cwd, err := os.Getwd()

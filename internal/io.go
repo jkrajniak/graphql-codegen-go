@@ -32,7 +32,6 @@ func (o *STDOutput) Writeln(s string) error {
 }
 
 func (o *STDOutput) Flush() error {
-	//fmt.Println(string(o.buff))
 	out, err := format.Source(o.buff)
 	if err != nil {
 		return err

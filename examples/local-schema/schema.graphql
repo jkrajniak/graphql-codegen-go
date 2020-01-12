@@ -9,3 +9,8 @@ type Entity1 {
 
     total: Int
 }
+
+type User {
+    name: String!
+    age: Int
+}
