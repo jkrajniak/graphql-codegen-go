@@ -4,12 +4,21 @@ Generate Go structs from your GraphQL schema.
 This [code generator](https://blog.golang.org/generate) helps you derive Go structures directly from [GraphQL](https://graphql.org/) schema. The schema
 can be located either locally or can be fetched from GIT repository.
 
+Install it using `go get`:
+
+```bash
+$ go get -u github.com/jkrajniak/graphql-codegen-go
+```
+## Quick start
+
 Simply, define the GQL schema
 ```graphql
 type Person {
   name: String!
   age: Int!
   weight: Int
+  likes: [String]
+  donts: [String!]
 }
 ```
 and save it, e.g. in `schema.gql` file. Then run the code generator
@@ -26,11 +35,15 @@ As a result, you will get a `models.go` file with the following Go code
 package pkg
 
 type Person struct {
-	Name   string `json:"name"`
-	Age    int64  `json:"age"`
-	Weight *int64 `json:"weight"`
+	Name   string    `json:"name"`
+	Age    int64     `json:"age"`
+	Weight *int64    `json:"weight"`
+	Likes  []*string `json:"likes"`
+	Donts  []string  `json:"donts"`
 }
 ```
+
+Notice that not required (`weight`) fields are converted to the pointers.
 
 The schema does not have to be located locally. The program supports also Git repositories.
 Let's assume that you the `schema.gql` file is placed in `github.com/orange/repo1` repository, inside a `deployment` directory.
@@ -53,12 +66,46 @@ will create file `models.go` only with a single structure `Person`.
 
 **Note:** currently generator does not track the dependencies between entities.
 
-## Install
+### Union
 
-Install it using `go get`:
+The [union type](https://graphql.org/learn/schema/#union-types) is supported in the following way. Let's consider a schema
+```graphql
+type Et {
+  value: String
+}
 
-```bash
-$ go get -u github.com/jkrajniak/graphql-codegen-go
+type Pt {
+  label: String!
+}
+
+union Ett = Et | Pt
+
+type Entity {
+  id: String!
+  etpt: Ett
+}
+```
+
+The union type `Ett` is converted into a Go struct `Ett`
+```go
+type Et struct {
+	Value *string `json:"value"`
+}
+
+type Pt struct {
+	Label string `json:"label"`
+}
+
+type Ett struct {
+	TypeName string `json:"__typeName"`
+	Et
+	Pt
+}
+
+type Entity struct {
+	Id   string `json:"id"`
+	Etpt *Ett   `json:"etpt"`
+}
 ```
 
 
