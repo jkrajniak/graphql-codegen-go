@@ -39,6 +39,8 @@ type GoGenerator struct {
 	packageName string
 
 	output Outputer
+
+	disableHeader bool
 }
 
 func NewGoGenerator(output Outputer, entities []string, packageName string) *GoGenerator {
@@ -51,8 +53,10 @@ func (g *GoGenerator) Generate(inputSchema string, schemaFileName string) {
 		BuiltIn: false,
 	})
 
-	if err := g.output.Writeln(fmt.Sprintf(Header, schemaFileName, g.packageName)); err != nil {
-		panic(err)
+	if !g.disableHeader {
+		if err := g.output.Writeln(fmt.Sprintf(Header, schemaFileName, g.packageName)); err != nil {
+			panic(err)
+		}
 	}
 
 	//remap enums
@@ -79,11 +83,11 @@ func (g *GoGenerator) Generate(inputSchema string, schemaFileName string) {
 	}
 
 	for _, i := range doc.Definitions {
-		var fields []string
 		if i.Kind == ast.Object || i.Kind == ast.InputObject {
 			if g.entities != nil && len(g.entities) > 0 && !inArray(i.Name, g.entities) {
 				continue
 			}
+			var fields []string
 			for _, f := range i.Fields {
 				typeName := resolveType(f.Type.Name(), enumMap, f.Type.NonNull)
 				fieldName := strings.Title(f.Name)
@@ -95,6 +99,12 @@ func (g *GoGenerator) Generate(inputSchema string, schemaFileName string) {
 					fields = append(fields, fmt.Sprintf(FieldTPL, fieldName, typeName, jsonFieldName))
 				}
 			}
+			if err := g.output.Writeln(fmt.Sprintf(StructTPL, i.Name, strings.Join(fields, "\n"))); err != nil {
+				panic(err)
+			}
+		} else if i.Kind == ast.Union {
+			fields := []string{fmt.Sprintf(FieldTPL, "TypeName", "string", "__typeName")}
+			fields = append(fields, i.Types...)
 			if err := g.output.Writeln(fmt.Sprintf(StructTPL, i.Name, strings.Join(fields, "\n"))); err != nil {
 				panic(err)
 			}

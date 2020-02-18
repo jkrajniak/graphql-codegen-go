@@ -1,3 +1,17 @@
+type Et {
+    value: String
+}
+
+type Pt {
+    label: String!
+}
+
+type Ct {
+    age: Int
+}
+
+union Structs = Et | Pt | Ct
+
 type Entity1 {
     id: String!
 
@@ -8,6 +22,8 @@ type Entity1 {
     createdAt: String!
 
     total: Int
+
+    s: Structs
 }
 
 type User {
