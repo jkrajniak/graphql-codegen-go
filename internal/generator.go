@@ -83,10 +83,10 @@ func (g *GoGenerator) Generate(inputSchema string, schemaFileName string) {
 	}
 
 	for _, i := range doc.Definitions {
+		if g.entities != nil && len(g.entities) > 0 && !inArray(i.Name, g.entities) {
+			continue
+		}
 		if i.Kind == ast.Object || i.Kind == ast.InputObject {
-			if g.entities != nil && len(g.entities) > 0 && !inArray(i.Name, g.entities) {
-				continue
-			}
 			var fields []string
 			for _, f := range i.Fields {
 				typeName := resolveType(f.Type.Name(), enumMap, f.Type.NonNull)

@@ -43,7 +43,8 @@ type Person struct {
 }
 ```
 
-Notice that not required (`weight`) fields are converted to the pointers.
+Notice that not required (`weight`) fields are converted to the pointers. The `packageName` option is optional. The generator
+will try to derive the package name from the current running path of the code, or if run by `go:generate` from `$GOPACKAGE` env variable.
 
 The schema does not have to be located locally. The program supports also Git repositories.
 Let's assume that you the `schema.gql` file is placed in `github.com/orange/repo1` repository, inside a `deployment` directory.
@@ -108,3 +109,6 @@ type Entity struct {
 }
 ```
 
+# go:generate
+
+The generator can work perfectly fine with the ```go:generate``` directive. The examples of how to include it can be found in `examples/` directory.

@@ -6,22 +6,28 @@ import (
 	"github.com/jkrajniak/graphql-codegen-go/internal/readers"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 )
 
 func main() {
 	schemaFile := flag.String("schema", "", "schema file")
 	entitiesString := flag.String("entities", "", "comma separated list of entities (optional)")
-	outFile := flag.String("out", "", "output name")
+	outFile := flag.String("out", "", "file output name (optional, default: stdout)")
 	packageName := flag.String("packageName", "", "package name")
 	flag.Parse()
 
+	goGenerateDate := getGOGenerate()
 	if packageName == nil || *packageName == "" {
-		p, err := resolvePackageName()
-		if err != nil {
-			panic(err)
+		if goGenerateDate != nil {
+			packageName = &goGenerateDate.GOPackage
+		} else {
+			p, err := resolvePackageName()
+			if err != nil {
+				panic(err)
+			}
+			packageName = &p
 		}
-		packageName = &p
 	}
 
 	schemaReader := readers.DiscoverReader(*schemaFile)
@@ -58,8 +64,29 @@ func resolvePackageName() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	_, packageName := path.Split(cwd)
 
 	return packageName, nil
+}
+
+type goGenerate struct {
+	GOFile    string
+	GOLine    int
+	GOPackage string
+}
+
+func getGOGenerate() *goGenerate {
+	if goFile, has := os.LookupEnv("GOFILE"); has {
+		goLine, err := strconv.Atoi(os.Getenv("GOLINE"))
+		if err != nil {
+			panic(err)
+		}
+		return &goGenerate{
+			GOFile:    goFile,
+			GOLine:    goLine,
+			GOPackage: os.Getenv("GOPACKAGE"),
+		}
+	}
+
+	return nil
 }
