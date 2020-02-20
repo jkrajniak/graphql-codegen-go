@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/jkrajniak/graphql-codegen-go)](https://goreportcard.com/report/github.com/jkrajniak/graphql-codegen-go)
+
 # graphql-codegen-go
 Generate Go structs from your GraphQL schema.
 
