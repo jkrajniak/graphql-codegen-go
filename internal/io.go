@@ -34,6 +34,8 @@ func (o *STDOutput) Writeln(s string) error {
 func (o *STDOutput) Flush() error {
 	out, err := format.Source(o.buff)
 	if err != nil {
+		fmt.Println("Failed to format the source", err)
+		fmt.Println(string(o.buff))
 		return err
 	}
 	fmt.Print(string(out))

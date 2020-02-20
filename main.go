@@ -30,6 +30,10 @@ func main() {
 		}
 	}
 
+	if packageName == nil {
+		panic("packageName cannot be null, please use -packageName option to set it")
+	}
+
 	schemaReader := readers.DiscoverReader(*schemaFile)
 	of, err := schemaReader.Read()
 	if err != nil {

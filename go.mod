@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/vektah/gqlparser v1.2.0

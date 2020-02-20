@@ -46,12 +46,38 @@ type Person struct {
 Notice that not required (`weight`) fields are converted to the pointers. The `packageName` option is optional. The generator
 will try to derive the package name from the current running path of the code, or if run by `go:generate` from `$GOPACKAGE` env variable.
 
+### GIT
+
 The schema does not have to be located locally. The program supports also Git repositories.
 Let's assume that you the `schema.gql` file is placed in `github.com/orange/repo1` repository, inside a `deployment` directory.
-Then, to generate the structures you can run the generator as follows
+Then, to create the structures you can run the generator as follows
 
 ```bash
 $ graphql-codegen-go -schema https://github.com/orange/repo1.git/deployment/schema.gql -packageName pkg -out models.go
+```
+
+or via ssh
+
+```
+$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql -packageName pkg -out models.go
+```
+
+By default, the schema is pulled from the `HEAD`. To point a specific commit, you can place a commit hash after the file name, e.g.,
+
+```
+$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql#a56351vc -packageName pkg -out models.go
+```
+
+Moreover, you can also point the specific branch or tag by using `@` sign
+
+```
+$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql@branch -packageName pkg -out models.go
+```
+
+or
+
+```
+$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql@tag1 -packageName pkg -out models.go
 ```
 
 ### Entities
