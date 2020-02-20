@@ -13,7 +13,7 @@ type Outputer interface {
 	Flush() error
 }
 
-type STDOutput struct{
+type STDOutput struct {
 	buff []byte
 }
 
@@ -48,10 +48,10 @@ func (o *STDOutput) Close() error {
 
 type FileOutput struct {
 	OutputFile *os.File
-	buff []byte
+	buff       []byte
 }
 
-func NewFileOutput(fName string, ) (*FileOutput, error) {
+func NewFileOutput(fName string) (*FileOutput, error) {
 	file, err := os.Create(fName)
 	if err != nil {
 		return nil, err

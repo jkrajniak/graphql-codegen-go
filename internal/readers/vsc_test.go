@@ -19,14 +19,12 @@ func TestNewGitReader_SSHPath(t *testing.T) {
 	assert.Equal(t, "git@github.com:jkrajniak/sc-priv.git", s.repoURL)
 }
 
-
 func TestNewGitReader_BranchName(t *testing.T) {
 	s := NewGitReader("https://github.com/test/repo.git/internal/schema.sql@branch")
 	assert.Equal(t, "branch", s.branchName)
 	assert.Equal(t, "/internal/schema.sql", s.path)
 	assert.Equal(t, "https://github.com/test/repo.git", s.repoURL)
 }
-
 
 func TestNewGitReader_Hash(t *testing.T) {
 	s := NewGitReader("https://github.com/test/repo.git/internal/schema.sql#hash12344c1234")
