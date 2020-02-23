@@ -1,0 +1,31 @@
+enum Gender {
+    MALE
+    FEMALE
+}
+
+type Person {
+    firstName: String!
+    lastname: String!
+    age: Int
+    gender: Gender
+    address: Address
+}
+
+type Address {
+    street: String!
+    number: Int
+    city: String!
+    postalCode: String
+    province: String
+}
+
+type User {
+    name: String!
+    age: Int
+}
+
+type Action {
+    id: String!
+    label: String!
+    abc: ABC
+}

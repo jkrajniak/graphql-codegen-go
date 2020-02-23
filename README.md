@@ -91,11 +91,57 @@ For example
 ```bash
 $ graphql-codegen-go -schema schema.gql -packageName pkg -out models.go -entities Person
 ```
-will create file `models.go` only with a single structure `Person`.
+will create file `models.go` only with a single structure `Person`, and all related dependent structures and enums.
 
-**Note:** currently generator does not track the dependencies between entities.
 
-### Union
+### YAML Config
+
+Instead of command line parameters, the generator supports also a config file (`-config`). The example of the file can be found in `examples/config/config.yml`.
+
+The structure of the YAML file is
+
+```yaml
+
+schema: A list of schema files (it will be combined into one schema before parsing)
+generates: A key-value map, where key is the name of the output Go file
+    <output-file>:
+      config:
+        packageName: A package name
+        entities: A list of entities to be included into the output Go file
+```
+
+#### Example
+
+```yaml
+schema:
+    - ./schema.graphql
+    - ./types.graphql
+    - https://github.com/jkrajniak/sc.git/schema1.gql
+generates:
+    internal/models.go:
+      config:
+        packageName: internal
+        entities:
+          - User
+          - Person
+    internal/abc/models.go:
+      config:
+        packageName: abc
+        entities:
+          - Action
+```
+
+After execution of the above config you will find two `.go` files (`internal/models.go` and `internal/abc/models.go`);
+the first will contain structures `User` and `Person`, and the second `Action`.
+
+The GQL schema will be read from two local files, from GIT repository.
+
+### go:generate
+
+The generator can work perfectly fine with the ```go:generate``` directive. The examples of how to include it can be found in `examples/` directory.
+
+
+## Union
 
 The [union type](https://graphql.org/learn/schema/#union-types) is supported in the following way. Let's consider a schema
 ```graphql
@@ -136,7 +182,3 @@ type Entity struct {
 	Etpt *Ett   `json:"etpt"`
 }
 ```
-
-# go:generate
-
-The generator can work perfectly fine with the ```go:generate``` directive. The examples of how to include it can be found in `examples/` directory.

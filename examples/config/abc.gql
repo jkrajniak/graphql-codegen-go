@@ -1,0 +1,5 @@
+type ABC {
+    a: String
+    b: String
+    c: Int!
+}

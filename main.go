@@ -4,93 +4,77 @@ import (
 	"flag"
 	"github.com/jkrajniak/graphql-codegen-go/internal"
 	"github.com/jkrajniak/graphql-codegen-go/internal/readers"
+	"github.com/pkg/errors"
 	"os"
-	"path"
-	"strconv"
 	"strings"
 )
 
 func main() {
+	configYaml := flag.String("config", "", "config yaml")
 	schemaFile := flag.String("schema", "", "schema file")
 	entitiesString := flag.String("entities", "", "comma separated list of entities (optional)")
+	packageNameString := flag.String("packageName", "", "package name")
 	outFile := flag.String("out", "", "file output name (optional, default: stdout)")
-	packageName := flag.String("packageName", "", "package name")
 	flag.Parse()
 
-	goGenerateDate := getGOGenerate()
-	if packageName == nil || *packageName == "" {
+	var config internal.Config
+	if configYaml != nil && *configYaml != "" {
+		configFile, err := os.Open(*configYaml)
+		if err != nil {
+			panic(err)
+		}
+		defer configFile.Close()
+
+		yc, err := internal.ReadConfigFromFile(configFile)
+		if err != nil {
+			panic(err)
+		}
+		config = yc
+	} else {
+		goGenerateDate := internal.GetGOGenerate()
+
+		var entities []string
+		if *entitiesString != "" {
+			entities = strings.Split(*entitiesString, ",")
+		}
+
+		var pkgName *string
 		if goGenerateDate != nil {
-			packageName = &goGenerateDate.GOPackage
-		} else {
-			p, err := resolvePackageName()
-			if err != nil {
-				panic(err)
-			}
-			packageName = &p
+			pkgName = &goGenerateDate.GOPackage
+		}
+		if packageNameString != nil && *packageNameString != "" {
+			pkgName = packageNameString
+		}
+		if pkgName == nil {
+			panic("pkgName not defined")
+		}
+
+		config = internal.Config{
+			Schemas: []string{*schemaFile},
+			Outputs: []internal.OutputItem{
+				{OutputPath: *outFile, PackageName: *pkgName, Entities: entities},
+			},
 		}
 	}
 
-	if packageName == nil {
-		panic("packageName cannot be null, please use -packageName option to set it")
-	}
-
-	schemaReader := readers.DiscoverReader(*schemaFile)
-	of, err := schemaReader.Read()
+	// Combine all schemas.
+	inputSchema, err := readers.ReadSchemas(config.Schemas)
 	if err != nil {
 		panic(err)
 	}
 
-	var output internal.Outputer = &internal.STDOutput{}
-	if outFile != nil && *outFile != "" {
-		o, err := internal.NewFileOutput(*outFile)
+	for _, o := range config.Outputs {
+		output, err := internal.NewFileOutput(o.OutputPath)
 		if err != nil {
+			panic(errors.Wrapf(err, "failed to create output to %s", o.OutputPath))
+		}
+		gen := internal.NewGoGenerator(output, o.Entities, o.PackageName)
+		if err := gen.Generate(string(inputSchema)); err != nil {
+			panic(errors.Wrapf(err, "failed to generate go structs"))
+		}
+
+		if err := output.Close(); err != nil {
 			panic(err)
 		}
-		output = o
-
 	}
-
-	var entities []string
-	if *entitiesString != "" {
-		entities = strings.Split(*entitiesString, ",")
-	}
-
-	goGenerator := internal.NewGoGenerator(output, entities, *packageName)
-	goGenerator.Generate(string(of), *schemaFile)
-
-	if err := output.Close(); err != nil {
-		panic(err)
-	}
-}
-
-func resolvePackageName() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	_, packageName := path.Split(cwd)
-
-	return packageName, nil
-}
-
-type goGenerate struct {
-	GOFile    string
-	GOLine    int
-	GOPackage string
-}
-
-func getGOGenerate() *goGenerate {
-	if goFile, has := os.LookupEnv("GOFILE"); has {
-		goLine, err := strconv.Atoi(os.Getenv("GOLINE"))
-		if err != nil {
-			panic(err)
-		}
-		return &goGenerate{
-			GOFile:    goFile,
-			GOLine:    goLine,
-			GOPackage: os.Getenv("GOPACKAGE"),
-		}
-	}
-
-	return nil
 }

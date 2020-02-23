@@ -1,0 +1,18 @@
+schema:
+    - ./schema.graphql
+    - ./abc.gql
+    - https://github.com/jkrajniak/sc.git/schema1.gql
+
+generates:
+    internal/models.go:
+        config:
+            packageName: internal
+            entities:
+                - User
+                - Person
+                - Action
+    internal/abc/models.go:
+        config:
+            packageName: abc
+            entities:
+                - Action

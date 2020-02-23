@@ -12,6 +12,12 @@ type Ct {
 
 union Structs = Et | Pt | Ct
 
+enum Year {
+    NEW
+    OLD
+    WEIRD
+}
+
 type Entity1 {
     id: String!
 
@@ -24,6 +30,8 @@ type Entity1 {
     total: Int
 
     s: Structs
+
+    y: Year
 }
 
 type User {

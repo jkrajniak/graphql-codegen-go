@@ -1,6 +1,6 @@
 package appsync
 
-//go:generate go run github.com/jkrajniak/graphql-codegen-go -schema ../../schema.graphql -entities Entity1 -out models.go
+//go:generate go run ../../../../ -schema ../../schema.graphql -entities Entity1 -out models.go
 
 type RawEntity struct {
 	ID string
