@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/dave/jennifer/jen"
 	"github.com/vektah/gqlparser/ast"
 	"github.com/vektah/gqlparser/parser"
 	"strings"
@@ -53,6 +54,8 @@ func (g *GoGenerator) Generate(inputSchema string) error {
 		BuiltIn: false,
 	})
 
+	outF := jen.NewFile(g.packageName)
+
 	if !g.disableHeader {
 		if err := g.output.Writeln(fmt.Sprintf(Header, g.packageName)); err != nil {
 			return err
@@ -69,6 +72,7 @@ func (g *GoGenerator) Generate(inputSchema string) error {
 		if len(reqEntities) > 0 && !inArray(e.TypeName, reqEntities) {
 			continue
 		}
+		outF.Type().Id(e.TypeName).String()
 		if err := g.output.Write(fmt.Sprintf(EnumTypeDefTPL, e.TypeName, "string")); err != nil {
 			return err
 		}
