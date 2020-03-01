@@ -45,7 +45,8 @@ func main() {
 			pkgName = packageNameString
 		}
 		if pkgName == nil {
-			panic("pkgName not defined")
+			flag.Usage()
+			panic("packageName not defined")
 		}
 
 		config = internal.Config{
