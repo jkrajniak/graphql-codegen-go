@@ -72,7 +72,7 @@ func (g *GoGenerator) Generate(doc *ast.SchemaDocument) error {
 			return err
 		}
 		for _, v := range e.Values {
-			if err := declaredKeywords.Set(v); err != nil {
+			if err := declaredKeywords.Set(fmt.Sprintf("%s%s", e.TypeName, v)); err != nil {
 				return err
 			}
 			if err := g.output.Write(fmt.Sprintf(EnumDefConstTPL, e.TypeName, v, e.TypeName, v)); err != nil {
@@ -86,6 +86,9 @@ func (g *GoGenerator) Generate(doc *ast.SchemaDocument) error {
 
 	for _, i := range doc.Definitions {
 		if len(reqEntities) > 0 && !inArray(i.Name, reqEntities) {
+			continue
+		}
+		if i.Name == "Query" || i.Name == "Mutation" {
 			continue
 		}
 		if i.Kind == ast.Object || i.Kind == ast.InputObject {
