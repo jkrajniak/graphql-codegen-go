@@ -2,9 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"github.com/dave/jennifer/jen"
-	"github.com/vektah/gqlparser/ast"
-	"github.com/vektah/gqlparser/parser"
+	"github.com/vektah/gqlparser/v2/ast"
 	"strings"
 )
 
@@ -37,10 +35,8 @@ type GoGenerator struct {
 	entities    []string
 	enumMapType map[string]string
 
-	packageName string
-
-	output Outputer
-
+	packageName   string
+	output        Outputer
 	disableHeader bool
 }
 
@@ -48,31 +44,27 @@ func NewGoGenerator(output Outputer, entities []string, packageName string) *GoG
 	return &GoGenerator{output: output, entities: entities, packageName: packageName}
 }
 
-func (g *GoGenerator) Generate(inputSchema string) error {
-	doc, _ := parser.ParseSchema(&ast.Source{
-		Input:   inputSchema,
-		BuiltIn: false,
-	})
-
-	outF := jen.NewFile(g.packageName)
-
+func (g *GoGenerator) Generate(doc *ast.SchemaDocument) error {
 	if !g.disableHeader {
 		if err := g.output.Writeln(fmt.Sprintf(Header, g.packageName)); err != nil {
 			return err
 		}
 	}
 
+	declaredKeywords := keywordMap{}
+
 	//remap enums
 	enumMap := buildEnumMap(doc)
 	reqEntities := resolveEntityDependencies(doc, g.entities, enumMap)
-	fmt.Printf("g.entities = %+v, reqEntities = %+v", g.entities, reqEntities)
 
 	// Write enum const
 	for _, e := range enumMap {
 		if len(reqEntities) > 0 && !inArray(e.TypeName, reqEntities) {
 			continue
 		}
-		outF.Type().Id(e.TypeName).String()
+		if err := declaredKeywords.Set(e.TypeName); err != nil {
+			return err
+		}
 		if err := g.output.Write(fmt.Sprintf(EnumTypeDefTPL, e.TypeName, "string")); err != nil {
 			return err
 		}
@@ -80,6 +72,9 @@ func (g *GoGenerator) Generate(inputSchema string) error {
 			return err
 		}
 		for _, v := range e.Values {
+			if err := declaredKeywords.Set(v); err != nil {
+				return err
+			}
 			if err := g.output.Write(fmt.Sprintf(EnumDefConstTPL, v, e.TypeName, v)); err != nil {
 				return err
 			}
@@ -106,12 +101,18 @@ func (g *GoGenerator) Generate(inputSchema string) error {
 					fields = append(fields, fmt.Sprintf(FieldTPL, fieldName, typeName, jsonFieldName))
 				}
 			}
+			if err := declaredKeywords.Set(i.Name); err != nil {
+				return err
+			}
 			if err := g.output.Writeln(fmt.Sprintf(StructTPL, i.Name, strings.Join(fields, "\n"))); err != nil {
 				return err
 			}
 		} else if i.Kind == ast.Union {
 			fields := []string{fmt.Sprintf(FieldTPL, "TypeName", "string", "__typeName")}
 			fields = append(fields, i.Types...)
+			if err := declaredKeywords.Set(i.Name); err != nil {
+				return err
+			}
 			if err := g.output.Writeln(fmt.Sprintf(StructTPL, i.Name, strings.Join(fields, "\n"))); err != nil {
 				return err
 			}
@@ -200,4 +201,21 @@ func buildEnumMap(doc *ast.SchemaDocument) map[string]enum {
 		}
 	}
 	return enumMap
+}
+
+type keywordMap map[string]bool
+
+func (t keywordMap) Set(key string) error {
+	//if _, has := t[key]; has {
+	//	return errors.New(fmt.Sprintf("keyword %s already declared - please check ", key, t))
+	//}
+	t[key] = true
+	return nil
+}
+
+func (t keywordMap) Has(key string) bool {
+	if _, has := t[key]; has {
+		return true
+	}
+	return false
 }

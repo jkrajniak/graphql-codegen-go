@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"github.com/jkrajniak/graphql-codegen-go/internal"
-	"github.com/jkrajniak/graphql-codegen-go/internal/readers"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
@@ -58,7 +57,7 @@ func main() {
 	}
 
 	// Combine all schemas.
-	inputSchema, err := readers.ReadSchemas(config.Schemas)
+	inputSchemas, err := internal.ReadSchemas(config.Schemas)
 	if err != nil {
 		panic(err)
 	}
@@ -68,8 +67,14 @@ func main() {
 		if err != nil {
 			panic(errors.Wrapf(err, "failed to create output to %s", o.OutputPath))
 		}
+
+		loadedDocs, err := internal.LoadSchemas(inputSchemas)
+		if err != nil {
+			panic(errors.Wrapf(err, "failed to parse input schemas"))
+		}
+
 		gen := internal.NewGoGenerator(output, o.Entities, o.PackageName)
-		if err := gen.Generate(string(inputSchema)); err != nil {
+		if err := gen.Generate(loadedDocs); err != nil {
 			panic(errors.Wrapf(err, "failed to generate go structs"))
 		}
 

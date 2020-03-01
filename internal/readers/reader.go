@@ -1,7 +1,6 @@
 package readers
 
 import (
-	"github.com/pkg/errors"
 	"strings"
 )
 
@@ -18,15 +17,3 @@ func DiscoverReader(schemaPath string) SchemaReader {
 }
 
 
-func ReadSchemas(schemaPaths []string) ([]byte, error) {
-	var outs []byte
-	for _, s := range schemaPaths {
-		r := DiscoverReader(s)
-		o, err := r.Read()
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read from %s", s)
-		}
-		outs = append(outs, o...)
-	}
-	return outs, nil
-}

@@ -1,7 +1,6 @@
 schema:
     - ./schema.graphql
     - ./abc.gql
-    - https://github.com/jkrajniak/sc.git/schema1.gql
 
 generates:
     internal/models.go:
