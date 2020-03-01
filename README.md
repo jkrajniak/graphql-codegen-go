@@ -26,7 +26,7 @@ type Person {
 and save it, e.g. in `schema.gql` file. Then run the code generator
 
 ```bash
-$ graphql-codegen-go -schema schema.gql -packageName pkg -out models.go
+$ graphql-codegen-go -schemas schema.gql -packageName pkg -out models.go
 ```
 As a result, you will get a `models.go` file with the following Go code
 
@@ -55,31 +55,31 @@ Let's assume that you the `schema.gql` file is placed in `github.com/orange/repo
 Then, to create the structures you can run the generator as follows
 
 ```bash
-$ graphql-codegen-go -schema https://github.com/orange/repo1.git/deployment/schema.gql -packageName pkg -out models.go
+$ graphql-codegen-go -schemas https://github.com/orange/repo1.git/deployment/schema.gql -packageName pkg -out models.go
 ```
 
 or via ssh
 
 ```
-$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql -packageName pkg -out models.go
+$ graphql-codegen-go -schemas git@github.com:orange/repo1.git/deployment/schema.gql -packageName pkg -out models.go
 ```
 
 By default, the schema is pulled from the `HEAD`. To point a specific commit, you can place a commit hash after the file name, e.g.,
 
 ```
-$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql#a56351vc -packageName pkg -out models.go
+$ graphql-codegen-go -schemas git@github.com:orange/repo1.git/deployment/schema.gql#a56351vc -packageName pkg -out models.go
 ```
 
 Moreover, you can also point the specific branch or tag by using `@` sign
 
 ```
-$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql@branch -packageName pkg -out models.go
+$ graphql-codegen-go -schemas git@github.com:orange/repo1.git/deployment/schema.gql@branch -packageName pkg -out models.go
 ```
 
 or
 
 ```
-$ graphql-codegen-go -schema git@github.com:orange/repo1.git/deployment/schema.gql@tag1 -packageName pkg -out models.go
+$ graphql-codegen-go -schemas git@github.com:orange/repo1.git/deployment/schema.gql@tag1 -packageName pkg -out models.go
 ```
 
 ### Entities
@@ -89,7 +89,7 @@ you can use `-entities` option.
 
 For example
 ```bash
-$ graphql-codegen-go -schema schema.gql -packageName pkg -out models.go -entities Person
+$ graphql-codegen-go -schemas schema.gql -packageName pkg -out models.go -entities Person
 ```
 will create file `models.go` only with a single structure `Person`, and all related dependent structures and enums.
 

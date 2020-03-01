@@ -1,6 +1,6 @@
 package appsync
 
-//go:generate go run ../../../../. -schema https://github.com/jkrajniak/sc.git/schema1.gql -out models.go -entities Entity1
+//go:generate go run ../../../../. -schemas https://github.com/jkrajniak/sc.git/schema1.gql -out models.go -entities Entity1
 
 type RawEntity struct {
 	ID string

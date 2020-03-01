@@ -10,7 +10,7 @@ import (
 
 func main() {
 	configYaml := flag.String("config", "", "config yaml")
-	schemaFile := flag.String("schema", "", "schema file")
+	schemasFile := flag.String("schemas", "", "schema file (comma separated list)")
 	entitiesString := flag.String("entities", "", "comma separated list of entities (optional)")
 	packageNameString := flag.String("packageName", "", "package name")
 	outFile := flag.String("out", "", "file output name (optional, default: stdout)")
@@ -50,7 +50,7 @@ func main() {
 		}
 
 		config = internal.Config{
-			Schemas: []string{*schemaFile},
+			Schemas: strings.Split(*schemasFile, ","),
 			Outputs: []internal.OutputItem{
 				{OutputPath: *outFile, PackageName: *pkgName, Entities: entities},
 			},
