@@ -20,7 +20,7 @@ package %s
 	FieldTPL        = "  %s %s `json:\"%s\"`"
 	ListFieldTPL    = "  %s []%s `json:\"%s\"`"
 	EnumTypeDefTPL  = "type %s %s"
-	EnumDefConstTPL = "const %s %s = \"%s\""
+	EnumDefConstTPL = "const %s%s %s = \"%s\""
 )
 
 var GQLTypesToGoTypes = map[string]string{
@@ -75,7 +75,7 @@ func (g *GoGenerator) Generate(doc *ast.SchemaDocument) error {
 			if err := declaredKeywords.Set(v); err != nil {
 				return err
 			}
-			if err := g.output.Write(fmt.Sprintf(EnumDefConstTPL, v, e.TypeName, v)); err != nil {
+			if err := g.output.Write(fmt.Sprintf(EnumDefConstTPL, e.TypeName, v, e.TypeName, v)); err != nil {
 				return err
 			}
 			if err := g.output.Write("\n"); err != nil {
@@ -121,6 +121,11 @@ func (g *GoGenerator) Generate(doc *ast.SchemaDocument) error {
 			return err
 		}
 	}
+
+	if missingEntities := declaredKeywords.GetMissingKeys(g.entities); len(missingEntities) > 0 {
+		return fmt.Errorf("the following entites are not found in graphql schemas: %v", missingEntities)
+	}
+
 	return nil
 }
 
@@ -137,16 +142,6 @@ func resolveType(typeName string, enumMap map[string]enum, notNull bool) string 
 	return typeName
 }
 
-func inArray(item string, items []string) bool {
-	itemLower := strings.ToLower(item)
-	for _, v := range items {
-		itemVal := strings.TrimSpace(strings.ToLower(v))
-		if itemVal == itemLower {
-			return true
-		}
-	}
-	return false
-}
 
 func resolveEntityDependencies(doc *ast.SchemaDocument, reqEntities []string, enumMap map[string]enum) []string {
 	dependsOn := map[string][]string{}
@@ -192,7 +187,7 @@ func buildEnumMap(doc *ast.SchemaDocument) map[string]enum {
 	enumMap := map[string]enum{}
 	for _, i := range doc.Definitions {
 		if i.Kind == ast.Enum {
-			enumTypeName := fmt.Sprintf("%sEnum", i.Name)
+			enumTypeName := fmt.Sprintf("Enum%s", i.Name)
 			var vals []string
 			for _, e := range i.EnumValues {
 				vals = append(vals, e.Name)
@@ -203,19 +198,3 @@ func buildEnumMap(doc *ast.SchemaDocument) map[string]enum {
 	return enumMap
 }
 
-type keywordMap map[string]bool
-
-func (t keywordMap) Set(key string) error {
-	//if _, has := t[key]; has {
-	//	return errors.New(fmt.Sprintf("keyword %s already declared - please check ", key, t))
-	//}
-	t[key] = true
-	return nil
-}
-
-func (t keywordMap) Has(key string) bool {
-	if _, has := t[key]; has {
-		return true
-	}
-	return false
-}
